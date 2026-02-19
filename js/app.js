@@ -36,6 +36,27 @@
   const $sortStatus   = document.getElementById('sort-status');
   const $sortRoom     = document.getElementById('sort-room');
 
+  // Detail view refs
+  const $detailOverlay   = document.getElementById('detail-overlay');
+  const $detailClose     = document.getElementById('detail-close');
+  const $detailName      = document.getElementById('detail-name');
+  const $detailBadge     = document.getElementById('detail-badge');
+  const $detailRoom      = document.getElementById('detail-room');
+  const $detailRoomChip  = document.getElementById('detail-room-chip');
+  const $detailAge       = document.getElementById('detail-age');
+  const $detailAgeChip   = document.getElementById('detail-age-chip');
+  const $detailDiagnoses = document.getElementById('detail-diagnoses');
+  const $detailDxSection = document.getElementById('detail-dx-section');
+  const $detailMeds      = document.getElementById('detail-medications');
+  const $detailMedsSection = document.getElementById('detail-meds-section');
+  const $detailNotes     = document.getElementById('detail-notes');
+  const $detailNotesSection = document.getElementById('detail-notes-section');
+  const $detailToggleSeen = document.getElementById('detail-toggle-seen');
+  const $detailToggleNote = document.getElementById('detail-toggle-note');
+  const $detailEditBtn   = document.getElementById('detail-edit-btn');
+
+  let currentDetailId = null;
+
   const filterTabs = document.querySelectorAll('.filter-tab');
 
   let patients = [];
@@ -145,7 +166,7 @@
 
     card.addEventListener('click', (e) => {
       if (e.target.closest('.card-action-btn')) return;
-      openEdit(p.id);
+      openDetail(p.id);
     });
 
     return card;
@@ -193,6 +214,123 @@
     $notes.value       = p.notes || '';
 
     openModal();
+  }
+
+  // ---- Detail View ----
+  async function openDetail(id) {
+    const p = await PatientDB.get(id);
+    if (!p) return;
+    currentDetailId = id;
+
+    $detailName.textContent = p.name || 'Unnamed';
+
+    // Badge
+    $detailBadge.className = 'badge';
+    if (p.status === 'noteComplete') {
+      $detailBadge.classList.add('badge-complete');
+      $detailBadge.textContent = 'Note Done';
+    } else if (p.status === 'seen') {
+      $detailBadge.classList.add('badge-seen');
+      $detailBadge.textContent = 'Seen';
+    } else {
+      $detailBadge.classList.add('badge-pending');
+      $detailBadge.textContent = 'Pending';
+    }
+
+    // Room & Age chips
+    if (p.room) {
+      $detailRoom.textContent = 'Room ' + p.room;
+      $detailRoomChip.classList.remove('hidden');
+    } else {
+      $detailRoomChip.classList.add('hidden');
+    }
+
+    if (p.age) {
+      $detailAge.textContent = p.age;
+      $detailAgeChip.classList.remove('hidden');
+    } else {
+      $detailAgeChip.classList.add('hidden');
+    }
+
+    // Sections
+    if (p.diagnoses) {
+      $detailDiagnoses.textContent = p.diagnoses;
+      $detailDiagnoses.classList.remove('empty');
+      $detailDxSection.classList.remove('hidden');
+    } else {
+      $detailDxSection.classList.add('hidden');
+    }
+
+    if (p.medications) {
+      $detailMeds.textContent = p.medications;
+      $detailMeds.classList.remove('empty');
+      $detailMedsSection.classList.remove('hidden');
+    } else {
+      $detailMedsSection.classList.add('hidden');
+    }
+
+    if (p.notes) {
+      $detailNotes.textContent = p.notes;
+      $detailNotes.classList.remove('empty');
+      $detailNotesSection.classList.remove('hidden');
+    } else {
+      $detailNotesSection.classList.add('hidden');
+    }
+
+    // Toggle buttons
+    updateDetailToggles(p);
+
+    $detailOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function updateDetailToggles(p) {
+    const isSeen = p.status === 'seen' || p.status === 'noteComplete';
+    const isNoteComplete = p.status === 'noteComplete';
+
+    $detailToggleSeen.className = `card-action-btn ${isSeen ? 'active-seen' : ''}`;
+    $detailToggleSeen.innerHTML = isSeen ? '&#10003; Seen' : '&#9675; Mark Seen';
+
+    $detailToggleNote.className = `card-action-btn ${isNoteComplete ? 'active-note' : ''}`;
+    $detailToggleNote.innerHTML = isNoteComplete ? '&#10003; Note Done' : '&#9675; Note Done';
+  }
+
+  function closeDetail() {
+    $detailOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    currentDetailId = null;
+  }
+
+  async function detailToggleStatus(action) {
+    if (!currentDetailId) return;
+    const p = await PatientDB.get(currentDetailId);
+    if (!p) return;
+
+    if (action === 'seen') {
+      if (p.status === 'pending') p.status = 'seen';
+      else if (p.status === 'seen') p.status = 'pending';
+    } else if (action === 'note') {
+      if (p.status === 'noteComplete') p.status = 'seen';
+      else p.status = 'noteComplete';
+    }
+
+    await PatientDB.update(p);
+    updateDetailToggles(p);
+
+    // Update badge
+    $detailBadge.className = 'badge';
+    if (p.status === 'noteComplete') {
+      $detailBadge.classList.add('badge-complete');
+      $detailBadge.textContent = 'Note Done';
+    } else if (p.status === 'seen') {
+      $detailBadge.classList.add('badge-seen');
+      $detailBadge.textContent = 'Seen';
+    } else {
+      $detailBadge.classList.add('badge-pending');
+      $detailBadge.textContent = 'Pending';
+    }
+
+    await loadPatients();
   }
 
   // ---- Save / Delete ----
@@ -411,6 +549,19 @@
     });
 
     $btnNewDay.addEventListener('click', newDayReset);
+
+    // Detail view
+    $detailClose.addEventListener('click', closeDetail);
+    $detailOverlay.addEventListener('click', (e) => {
+      if (e.target === $detailOverlay) closeDetail();
+    });
+    $detailToggleSeen.addEventListener('click', () => detailToggleStatus('seen'));
+    $detailToggleNote.addEventListener('click', () => detailToggleStatus('note'));
+    $detailEditBtn.addEventListener('click', () => {
+      const id = currentDetailId;
+      closeDetail();
+      setTimeout(() => openEdit(id), 250);
+    });
 
     $sortStatus.addEventListener('click', () => setSort('status'));
     $sortRoom.addEventListener('click', () => setSort('room'));

@@ -147,6 +147,58 @@
     </div>
   </div>
 
+  <!-- ===== PATIENT DETAIL VIEW ===== -->
+  <div class="modal-overlay" id="detail-overlay">
+    <div class="modal" id="detail-modal">
+      <div class="modal-header">
+        <div class="detail-header-info">
+          <h2 id="detail-name">Patient Name</h2>
+          <span class="badge" id="detail-badge">Pending</span>
+        </div>
+        <button class="modal-close" id="detail-close">&times;</button>
+      </div>
+      <div class="detail-body" id="detail-body">
+        <div class="detail-topline">
+          <div class="detail-chip" id="detail-room-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            <span id="detail-room">--</span>
+          </div>
+          <div class="detail-chip" id="detail-age-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Age <span id="detail-age">--</span></span>
+          </div>
+        </div>
+
+        <div class="detail-section" id="detail-dx-section">
+          <div class="detail-label">Diagnoses</div>
+          <div class="detail-content" id="detail-diagnoses">--</div>
+        </div>
+
+        <div class="detail-section" id="detail-meds-section">
+          <div class="detail-label">Medications</div>
+          <div class="detail-content" id="detail-medications">--</div>
+        </div>
+
+        <div class="detail-section" id="detail-notes-section">
+          <div class="detail-label">Notes</div>
+          <div class="detail-content detail-notes-text" id="detail-notes">--</div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="card-action-btn" id="detail-toggle-seen">&#9675; Mark Seen</button>
+          <button class="card-action-btn" id="detail-toggle-note">&#9675; Note Done</button>
+        </div>
+
+        <div class="detail-footer">
+          <button class="btn btn-primary detail-edit-btn" id="detail-edit-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit Patient
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== TOAST ===== -->
   <div class="toast" id="toast"></div>
 
