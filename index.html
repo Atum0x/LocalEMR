@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#2563EB">
+  <title>LocalEMR</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L12 22M2 12L22 12" stroke-linecap="round"/>
+        <rect x="3" y="3" width="18" height="18" rx="4"/>
+      </svg>
+      <h1>LocalEMR</h1>
+    </div>
+    <div class="top-bar-actions">
+      <button id="btn-new-day" class="icon-btn" title="New Day — Reset all statuses">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </button>
+      <button id="btn-export" class="icon-btn" title="Export Data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button id="btn-import" class="icon-btn" title="Import Data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+      <input type="file" id="import-file" accept=".json" hidden>
+    </div>
+  </header>
+
+  <!-- ===== STATS BAR ===== -->
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="stat-total">0</span>
+      <span class="stat-label">Patients</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num stat-seen" id="stat-seen">0</span>
+      <span class="stat-label">Seen</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num stat-notes" id="stat-notes">0</span>
+      <span class="stat-label">Notes Done</span>
+    </div>
+  </div>
+
+  <!-- ===== FILTER TABS ===== -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all">All</button>
+    <button class="filter-tab" data-filter="pending">Pending</button>
+    <button class="filter-tab" data-filter="seen">Seen</button>
+    <button class="filter-tab" data-filter="completed">Notes Done</button>
+  </div>
+
+  <!-- ===== SORT BAR ===== -->
+  <div class="sort-bar">
+    <button class="sort-btn active" data-sort="status" id="sort-status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      By Status
+    </button>
+    <button class="sort-btn" data-sort="room" id="sort-room">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      By Room #
+    </button>
+  </div>
+
+  <!-- ===== PATIENT LIST ===== -->
+  <main class="patient-list" id="patient-list">
+    <div class="empty-state" id="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <p>No patients yet</p>
+      <p class="empty-sub">Tap the + button to add your first patient</p>
+    </div>
+  </main>
+
+  <!-- ===== FAB (Add Patient) ===== -->
+  <button class="fab" id="fab-add" title="Add Patient">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <!-- ===== PATIENT FORM MODAL ===== -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="patient-modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Patient</h2>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <form id="patient-form" class="modal-body">
+        <input type="hidden" id="patient-id">
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="patient-name">Name</label>
+            <input type="text" id="patient-name" placeholder="Patient name" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="patient-room">Room #</label>
+            <input type="text" id="patient-room" placeholder="e.g. 412B" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="patient-age">Age</label>
+            <input type="number" id="patient-age" placeholder="Age" min="0" max="150" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="patient-status-select">Status</label>
+            <select id="patient-status-select">
+              <option value="pending">Pending</option>
+              <option value="seen">Seen</option>
+              <option value="noteComplete">Note Complete</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="patient-diagnoses">Diagnoses</label>
+          <textarea id="patient-diagnoses" rows="2" placeholder="e.g. CHF, COPD exacerbation, AKI..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="patient-medications">Medications</label>
+          <textarea id="patient-medications" rows="2" placeholder="e.g. Lasix 40mg IV BID, Metoprolol 25mg PO BID..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="patient-notes">Notes</label>
+          <textarea id="patient-notes" rows="4" placeholder="Free-text notes... assessments, plans, updates..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-danger hidden" id="btn-delete">Delete</button>
+          <button type="submit" class="btn btn-primary" id="btn-save">Save Patient</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"></div>
+
+  <script src="./js/db.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
